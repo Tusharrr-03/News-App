@@ -1,89 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
-
-List<Map<String , dynamic>> mNews = [
-  {
-    'bg_image' : "assets/images/news_app_bg1.png",
-    'hot_text' : "🔥Hot",
-    'nature_text' : 'Nature',
-    'animal_text' : "Animal",
-    'cnbc_logo' : "assets/images/cnbc_bg_icon.png",
-    'cnbc_text' : 'Cnbc News',
-    'time_text' : '1h Ago',
-    'heart_icon' : Iconsax.heart,
-    'heart_text' : "5.2k",
-    'message_icon' : Iconsax.message,
-    'message_text' : "23k",
-    'news_desc' : "Scientist just found the Lost Species of Jellyfish\nthat went extinct 25 millions years Ago !",
-  },
-  {
-    'bg_image' : "assets/images/news_app_bg2.png",
-    'hot_text' : "🔥Hot",
-    'nature_text' : 'Nature',
-    'animal_text' : "Animal",
-    'cnbc_logo' : "assets/images/cnbc_bg_icon.png",
-    'cnbc_text' : 'Cnbc News',
-    'time_text' : '1h Ago',
-    'heart_icon' : Iconsax.heart,
-    'heart_text' : "5.2k",
-    'message_icon' : Iconsax.message,
-    'message_text' : "23k",
-    'news_desc' : "Scientist just found the Lost Species of Jellyfish\nthat went extinct 25 millions years Ago !",
-  },
-  {
-    'bg_image' : "assets/images/news_app_bg3.png",
-    'hot_text' : "🔥Hot",
-    'nature_text' : 'Nature',
-    'animal_text' : "Animal",
-    'cnbc_logo' : "assets/images/cnbc_bg_icon.png",
-    'cnbc_text' : 'Cnbc News',
-    'time_text' : '1h Ago',
-    'heart_icon' : Iconsax.heart,
-    'heart_text' : "5.2k",
-    'message_icon' : Iconsax.message,
-    'message_text' : "23k",
-    'news_desc' : "Scientist just found the Lost Species of Jellyfish\nthat went extinct 25 millions years Ago !",
-  },
-  {
-    'bg_image' : "assets/images/news_app_bg1.png",
-    'hot_text' : "🔥Hot",
-    'nature_text' : 'Nature',
-    'animal_text' : "Animal",
-    'cnbc_logo' : "assets/images/cnbc_bg_icon.png",
-    'cnbc_text' : 'Cnbc News',
-    'time_text' : '1h Ago',
-    'heart_icon' : Iconsax.heart,
-    'heart_text' : "5.2k",
-    'message_icon' : Iconsax.message,
-    'message_text' : "23k",
-    'news_desc' : "Scientist just found the Lost Species of Jellyfish\nthat went extinct 25 millions years Ago !",
-  },
-];
-
-List<Map<String , dynamic>> mButtons = [
-  {
-    'text' : 'All',
-  },
-  {
-    'text' : 'Politics',
-  },
-  {
-    'text' : 'Sports',
-  },
-  {
-    'text' : 'Nature',
-  },
-  {
-    'text' : 'Education',
-  },
-  {
-    'text' : 'Foriegn Affairs',
-  },
-  {
-    'text' : 'Automotive',
-  },
-];
-
+import 'package:news_app_ui/API%20Helper/api_helper.dart';
+import 'package:news_app_ui/Constants/appConst.dart';
+import 'package:news_app_ui/model/news_model.dart';
+import 'package:http/http.dart' as httpClient;
+import 'package:news_app_ui/news_bloc/news_bloc.dart';
 
 class NavHomePage extends StatefulWidget {
   const NavHomePage({super.key});
@@ -93,8 +17,23 @@ class NavHomePage extends StatefulWidget {
 }
 
 class _NavHomePageState extends State<NavHomePage> {
-
   int selectedIndex = 0;
+  var queryTextController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    BlocProvider.of<NewsBloc>(context).add(GetNewsEvent());
+  }
+
+  Future<DataModelNews>getAllNews()async{
+    String url = ApiHelper.getNewsTopHeadlinesApi;
+    var res = await httpClient.get(Uri.parse(url));
+    Map<String, dynamic> mData = jsonDecode(res.body);
+    print(mData);
+    DataModelNews allNews = DataModelNews.fromJson(mData);
+    return allNews;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,20 +56,23 @@ class _NavHomePageState extends State<NavHomePage> {
                         height: 50,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(30),
-                          child: Image.asset("assets/images/tusharprofile.jpg" , fit: BoxFit.cover,),
+                          child: Image.asset("assets/images/tusharprofile.jpg",
+                            fit: BoxFit.cover,),
                         ),
-                      ),SizedBox(width: 7,),
+                      ), SizedBox(width: 7,),
                       Container(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Welcome" , style: TextStyle(fontSize: 16 , color: Colors.black54),),
-                            Text("Tushar Goyal!" , style: TextStyle(fontSize: 16 , fontWeight: FontWeight.w500),),
+                            Text("Welcome", style: TextStyle(
+                                fontSize: 16, color: Colors.black54),),
+                            Text("Tushar Goyal!", style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w500),),
                           ],
                         ),
-                      ),Expanded(child: SizedBox(width: 10,)),
+                      ), Expanded(child: SizedBox(width: 10,)),
                       Container(
-                        child: Icon(Iconsax.notification , color: Colors.black,),
+                        child: Icon(Iconsax.notification, color: Colors.black,),
                       ),
                     ],
                   ),
@@ -140,22 +82,34 @@ class _NavHomePageState extends State<NavHomePage> {
 
               /// TextField Area for search
               Container(
+                height: 55,
                 child: TextField(
+                  controller: queryTextController,
                   style: TextStyle(
                     color: Colors.black,
                   ),
                   decoration: InputDecoration(
                       fillColor: Colors.grey.shade100,
                       filled: true,
-                      prefixIcon: Icon(Iconsax.search_normal , color: Colors.black54,),
+                      suffix: TextButton(onPressed: (){
+                        context.read<NewsBloc>().add(GetNewsBySearchControllerEvent(queryController: queryTextController.text));
+                        setState(() {});
+                      }, style: TextButton.styleFrom(
+                          padding: EdgeInsets.all(0),
+                          foregroundColor: Colors.white,
+                        backgroundColor: Colors.blue
+                      ), child: Text("Search")),
+                      prefixIcon: Icon(
+                        Iconsax.search_normal, color: Colors.black54,),
                       hintText: "Let's see what happend today",
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
                         borderSide: BorderSide(color: Colors.white),
-                      ),focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(color: Colors.white),
-                  )
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: BorderSide(color: Colors.white),
+                      )
                   ),
                 ),
               ),
@@ -163,11 +117,12 @@ class _NavHomePageState extends State<NavHomePage> {
 
               /// Heading Before news section
               Container(
-                child:Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Breaking News !" , style: TextStyle(fontSize: 18 , fontWeight: FontWeight.bold),),
-                    Text("See all" , style: TextStyle(color: Colors.blue )),
+                    Text("Breaking News !", style: TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),),
+                    Text("See all", style: TextStyle(color: Colors.blue)),
                   ],
                 ),
               ),
@@ -178,21 +133,22 @@ class _NavHomePageState extends State<NavHomePage> {
                 width: 450,
                 height: 200,
                 child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  shrinkWrap: true,
-                  itemCount: mNews.length,
-                    itemBuilder: (context , index){
-                      return  Card(
+                    scrollDirection: Axis.horizontal,
+                    shrinkWrap: true,
+                    itemCount: AppConstants.mNews.length,
+                    itemBuilder: (context, index) {
+                      return Card(
                         child: Stack(
                           children: [
 
                             /// BackGround Image
                             Container(
-                              height : 220,
+                              height: 220,
                               width: 320,
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(21),
-                                child: Image.asset(mNews[index]['bg_image'] , fit: BoxFit.cover,),
+                                child: Image.asset(
+                                  AppConstants.mNews[index]['bg_image'], fit: BoxFit.cover,),
                               ),
                             ),
 
@@ -206,9 +162,12 @@ class _NavHomePageState extends State<NavHomePage> {
                                   decoration: BoxDecoration(
                                       color: Colors.white.withOpacity(0.4),
                                       borderRadius: BorderRadius.circular(10)
-                                  ),child: Padding(
+                                  ), child: Padding(
                                   padding: const EdgeInsets.only(top: 5.0),
-                                  child: Text(mNews[index]['hot_text'], style: TextStyle(fontSize: 16 , color: Colors.white),textAlign: TextAlign.center,),
+                                  child: Text(AppConstants.mNews[index]['hot_text'],
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.white),
+                                    textAlign: TextAlign.center,),
                                 ),
                                 )
                             ),
@@ -225,8 +184,11 @@ class _NavHomePageState extends State<NavHomePage> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Padding(
-                                    padding: const EdgeInsets.only(top: 5.0 , left: 3 ,right: 3),
-                                    child: Text(mNews[index]['nature_text'], style: TextStyle(color: Colors.white) , textAlign: TextAlign.center,),
+                                    padding: const EdgeInsets.only(
+                                        top: 5.0, left: 3, right: 3),
+                                    child: Text(AppConstants.mNews[index]['nature_text'],
+                                      style: TextStyle(color: Colors.white),
+                                      textAlign: TextAlign.center,),
                                   ),
                                 )
                             ),
@@ -243,8 +205,11 @@ class _NavHomePageState extends State<NavHomePage> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Padding(
-                                    padding: const EdgeInsets.only(top: 5.0 , left: 3 ,right: 3),
-                                    child: Text(mNews[index]['animal_text'], style: TextStyle(color: Colors.white) , textAlign: TextAlign.center,),
+                                    padding: const EdgeInsets.only(
+                                        top: 5.0, left: 3, right: 3),
+                                    child: Text(AppConstants.mNews[index]['animal_text'],
+                                      style: TextStyle(color: Colors.white),
+                                      textAlign: TextAlign.center,),
                                   ),
                                 )
                             ),
@@ -255,7 +220,10 @@ class _NavHomePageState extends State<NavHomePage> {
                                 left: 20,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(20),
-                                  child: Image.asset(mNews[index]['cnbc_logo'] , width: 30, height: 30, fit: BoxFit.cover,),
+                                  child: Image.asset(
+                                    AppConstants.mNews[index]['cnbc_logo'], width: 30,
+                                    height: 30,
+                                    fit: BoxFit.cover,),
                                 )
                             ),
 
@@ -263,7 +231,8 @@ class _NavHomePageState extends State<NavHomePage> {
                             Positioned(
                               bottom: 85,
                               left: 60,
-                              child: Text(mNews[index]['cnbc_text'] , style: TextStyle(color: Colors.white),),
+                              child: Text(AppConstants.mNews[index]['cnbc_text'],
+                                style: TextStyle(color: Colors.white),),
                             ),
 
                             /// Dot
@@ -284,7 +253,8 @@ class _NavHomePageState extends State<NavHomePage> {
                             Positioned(
                               bottom: 85,
                               left: 150,
-                              child: Text(mNews[index]['time_text'] ,style: TextStyle(color: Colors.white),),
+                              child: Text(AppConstants.mNews[index]['time_text'],
+                                style: TextStyle(color: Colors.white),),
                             ),
 
                             /// Icon and Text
@@ -293,8 +263,11 @@ class _NavHomePageState extends State<NavHomePage> {
                                 right: 80,
                                 child: Row(
                                   children: [
-                                    Icon(mNews[index]['heart_icon'] , color: Color(0XFFFFFFFFFF), size: 16,),SizedBox(width: 5,),
-                                    Text(mNews[index]['heart_text'] , style: TextStyle(color: Colors.white),),
+                                    Icon(AppConstants.mNews[index]['heart_icon'],
+                                      color: Color(0XFFFFFFFFFF), size: 16,),
+                                    SizedBox(width: 5,),
+                                    Text(AppConstants.mNews[index]['heart_text'],
+                                      style: TextStyle(color: Colors.white),),
                                   ],
                                 )
                             ),
@@ -305,8 +278,11 @@ class _NavHomePageState extends State<NavHomePage> {
                                 right: 20,
                                 child: Row(
                                   children: [
-                                    Icon(mNews[index]['message_icon'], color: Color(0XFFFFFFFFFF), size: 16,),SizedBox(width: 5,),
-                                    Text(mNews[index]['message_text'], style: TextStyle(color: Colors.white),),
+                                    Icon(AppConstants.mNews[index]['message_icon'],
+                                      color: Color(0XFFFFFFFFFF), size: 16,),
+                                    SizedBox(width: 5,),
+                                    Text(AppConstants.mNews[index]['message_text'],
+                                      style: TextStyle(color: Colors.white),),
                                   ],
                                 )
                             ),
@@ -315,7 +291,10 @@ class _NavHomePageState extends State<NavHomePage> {
                             Positioned(
                               bottom: 20,
                               left: 20,
-                              child: Text(mNews[index]['news_desc'] , style: TextStyle(color: Colors.white , fontSize: 13),textAlign: TextAlign.justify,),
+                              child: Text(AppConstants.mNews[index]['news_desc'],
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 13),
+                                textAlign: TextAlign.justify,),
                             ),
                           ],
                         ),
@@ -325,116 +304,157 @@ class _NavHomePageState extends State<NavHomePage> {
               ),
               SizedBox(height: 20,),
 
-              /// Second Heading
+              /// Trending Right Now Heading
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Trending Right Now", style: TextStyle(fontSize: 20 , fontWeight: FontWeight.bold),),
-                  Text("See all" , style: TextStyle(color: Colors.blue),)
+                  Text("Trending Right Now", style: TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),),
+                  Text("See all", style: TextStyle(color: Colors.blue),)
                 ],
               ),
               SizedBox(height: 20,),
 
-              /// Container Button
+              /// categories Button Container
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: List.generate(mButtons.length, (index) =>
+                    children: List.generate(AppConstants.mButtons.length, (index) =>
                       InkWell(
-                        onTap: (){
+                        onTap: () {
                           selectedIndex = index;
-                          setState(() {
-
-                          });
+                          context.read<NewsBloc>().add(GetNewsByCategoriesEvent(categories: AppConstants.mButtons[index]['category']));
+                          setState(() {});
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(5.0),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: selectedIndex == index ? Colors.blue : Colors.white,
+                              color: selectedIndex == index
+                                  ? Colors.blue
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: Colors.grey),
-                            ),child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10.0 , vertical: 12),
-                            child: Text(mButtons[index]['text'] , textAlign: TextAlign.center, style: TextStyle(fontSize: 16 , fontWeight: FontWeight.bold , color: selectedIndex == index ? Colors.white : Colors.black),),
-                                        ),
-                                        ),
+                            ), child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0, vertical: 12),
+                              child: Text(AppConstants.mButtons[index]['text']!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: selectedIndex == index
+                                      ? Colors.white
+                                      : Colors.black),),
+                          ),
+                          ),
                         ),
                       ),),
                 ),
               ),
               SizedBox(height: 20,),
 
-              /// Container List Tile
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15.0 , vertical: 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.asset("assets/images/bg_bmw.jpg" , fit: BoxFit.cover,),
-                        ),
-                      ),SizedBox(width: 6,),
-                      Container(
-                        width: 245,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Technology // Automotive " , style: TextStyle(color: Colors.grey),),SizedBox(height: 5,),
-                            Text("Get Ready , Flying Car Already Tested on a Mass Scale" , style: TextStyle(fontSize: 14 , fontWeight: FontWeight.bold),),SizedBox(height: 5,),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  width : 125,
-                                  child: Row(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(20),
-                                        child: Image.asset("assets/images/tusharprofile.jpg" , width: 40, height: 40, fit: BoxFit.cover,),
-                                      ),SizedBox(width: 5,),
-                                      Text("Tushar" , style: TextStyle(color: Colors.black54),),SizedBox(width: 5,),
-                                      Container(
-                                        width: 5,
-                                        height: 5,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(5),
-                                          color: Colors.grey,
-                                        ),
-                                      ),SizedBox(width: 5,),
-                                      Text("6h" , style: TextStyle(color: Colors.black54),),
-                                    ],
-                                  )
-                                ),
-                                Container(
-                                  width: 100,
-                                  child: Row(
-                                    children: [
-                                      Icon(Iconsax.heart , size: 16, color: Colors.grey,),
-                                      Text("4k" , style: TextStyle(color: Colors.black54),),SizedBox(width: 10,),
-                                      Icon(Iconsax.message , size: 16, color: Colors.grey,),
-                                      Text("3.5k" , style: TextStyle(color: Colors.black54),),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              )
+              /// Container News List Tile
+              BlocBuilder<NewsBloc, NewsState>(
+                  builder: (context, state){
+                    if(state is NewsLoadingState){
+                      return Center(child: CircularProgressIndicator(),);
+                    }
 
+                    if(state is NewsErrorState){
+                      return Center(child: Text(state.errorMsg),);
+                    }
+
+                    if(state is NewsLoadedState){
+                      List<ArticlesModel>? allArticles = state.resData.articles;
+
+                      return ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: allArticles?.length,
+                          itemBuilder: (_, index){
+
+                            ArticlesModel eachArticle = allArticles![index];
+
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 10.0),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0, vertical: 10),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 60,
+                                      height: 60,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: eachArticle.urlToImage != null
+                                            ? Image.network(eachArticle.urlToImage!, fit: BoxFit.cover)
+                                            : Container(),
+                                      ),
+                                    ), SizedBox(width: 6,),
+                                    Container(
+                                      width: 250,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text("${eachArticle.title}",
+                                            style: TextStyle(color: Colors.grey),),
+                                          SizedBox(height: 5,),
+                                          Text(
+                                            "${eachArticle.description}",textAlign: TextAlign.justify,
+                                            style: TextStyle(
+                                                fontSize: 14, fontWeight: FontWeight.bold),),
+                                          SizedBox(height: 5,),
+                                          Row(
+                                            //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Container(
+                                                  width: 240,
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                    children: [
+                                                      SizedBox(width: 5,),
+                                                      Container(
+                                                        width: 100,
+                                                        child: Text("${eachArticle.author}",overflow: TextOverflow.ellipsis ,style: TextStyle(
+                                                            color: Colors.black54),),
+                                                      ),
+                                                      SizedBox(width: 5,),
+                                                      Container(
+                                                        width: 3,
+                                                        height: 3,
+                                                        decoration: BoxDecoration(
+                                                          borderRadius: BorderRadius.circular(
+                                                              5),
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 5,),
+                                                      Container(
+                                                        width: 100,
+                                                        child: Text("${eachArticle.source?.name}", overflow: TextOverflow.ellipsis ,style: TextStyle(
+                                                            color: Colors.black54),),
+                                                      )
+                                                    ],
+                                                  )
+                                              ),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                          });
+                    }
+                    return Container();
+                  }
+              ),
             ],
           ),
         ),

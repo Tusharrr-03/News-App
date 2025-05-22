@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:news_app_ui/Bottom%20Navigation/nav_home_page.dart';
+import 'package:news_app_ui/Bottom%20Navigation/nav_settings_page.dart';
 
 List<Widget> navPages = [
   NavHomePage(),
   NavHomePage(),
   NavHomePage(),
-  NavHomePage(),
+  NavSettingsPage(),
 ];
 
 class HomePage extends StatefulWidget {
